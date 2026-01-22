@@ -1,0 +1,2438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C-WAGS Stats Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .header {
+            background: linear-gradient(90deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .file-upload-section {
+            padding: 40px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .file-upload-container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .file-upload-container h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .file-input-group {
+            background: white;
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .file-input-group:hover {
+            border-color: #764ba2;
+            background: #f8f9fa;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .file-input-group.dragover {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .file-input-group.loaded {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .file-input-group label {
+            display: block;
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .file-input-group input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-prompt {
+            color: #6c757d;
+            font-size: 0.95rem;
+            margin-top: 10px;
+        }
+
+        .file-upload-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .file-status {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #6c757d;
+            pointer-events: none;
+        }
+
+        .file-status.loaded {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .process-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .process-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .process-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status-message {
+            font-size: 1.1rem;
+            color: #495057;
+        }
+
+        .loading {
+            color: #17a2b8;
+            font-weight: 600;
+        }
+
+        .success {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .error {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .ranking-info {
+            background: #e7f3ff;
+            border: 2px solid #b8daff;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px;
+            color: #004085;
+        }
+
+        .ranking-info h4 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .ranking-info p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+
+        .export-section {
+            text-align: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            display: none;
+        }
+
+        .export-section.show {
+            display: block;
+        }
+
+        .export-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 0 10px;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(40, 167, 69, 0.3);
+        }
+
+        .export-all-btn {
+            background: linear-gradient(45deg, #6f42c1, #8e44ad);
+        }
+
+        .export-all-btn:hover {
+            box-shadow: 0 8px 16px rgba(111, 66, 193, 0.3);
+        }
+
+        .nav-tabs {
+            display: none;
+            flex-wrap: wrap;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            overflow-x: auto;
+        }
+
+        .nav-tabs.show {
+            display: flex;
+        }
+
+        .nav-tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .nav-tab:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .nav-tab.master {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+            color: #d97706;
+            font-weight: 700;
+        }
+
+        .nav-tab.master:hover {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3));
+        }
+
+        .nav-tab.master.active {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: white;
+            border-bottom: 3px solid #d97706;
+        }
+
+        .nav-tab.journal {
+            background: linear-gradient(135deg, rgba(23, 162, 184, 0.2), rgba(19, 132, 150, 0.2));
+            color: #17a2b8;
+            font-weight: 700;
+        }
+
+        .nav-tab.journal:hover {
+            background: linear-gradient(135deg, rgba(23, 162, 184, 0.3), rgba(19, 132, 150, 0.3));
+        }
+
+        .nav-tab.journal.active {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+            border-bottom: 3px solid #17a2b8;
+        }
+
+        .content {
+            padding: 30px;
+            display: none;
+        }
+
+        .content.show {
+            display: block;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .leaderboard {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .leaderboard-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .leaderboard-header.master {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #1f2937;
+        }
+
+        .leaderboard-header.journal {
+            background: linear-gradient(45deg, #17a2b8, #138496);
+            color: white;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .leaderboard-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .leaderboard-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .rank {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #667eea;
+            width: 50px;
+            text-align: center;
+        }
+
+        .rank-1 { color: #FFD700; }
+        .rank-2 { color: #C0C0C0; }
+        .rank-3 { color: #CD7F32; }
+
+        .dog-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .titles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .title-badge {
+            background: #28a745;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .title-badge.ace {
+            background: #6f42c1;
+        }
+
+        .achievement-badge {
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .achievement-badge.title {
+            background: #28a745;
+            color: white;
+        }
+
+        .achievement-badge.ace {
+            background: #6f42c1;
+            color: white;
+        }
+
+        .achievement-badge.ace2 {
+            background: #dc3545;
+            color: white;
+        }
+
+        .achievement-badge.ace3 {
+            background: #fd7e14;
+            color: white;
+        }
+
+        .achievement-badge.ace4 {
+            background: #ffc107;
+            color: #1f2937;
+        }
+
+        .achievement-badge.ace5plus {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #1f2937;
+            font-weight: 700;
+        }
+
+        .master-badge {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #1f2937;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            display: inline-block;
+            box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+        }
+
+        .requirements-list {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .requirements-list h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .requirements-list ul {
+            margin-left: 20px;
+            color: #856404;
+        }
+
+        .requirements-list li {
+            margin: 5px 0;
+        }
+
+        .no-qualifiers {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        .qs-count {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .score-breakdown {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .distribution-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .distribution-table th,
+        .distribution-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        .distribution-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .distribution-table .category-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .distribution-table .category-header:hover {
+            background: linear-gradient(135deg, #764ba2, #667eea);
+            transform: scale(1.02);
+        }
+
+        .distribution-table .class-name {
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .distribution-table .class-name:hover {
+            background: #e7f3ff;
+            color: #667eea;
+        }
+
+        .distribution-table .ace-header {
+            background: #6f42c1;
+            color: white;
+        }
+
+        .distribution-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .distribution-table tr:hover {
+            background: #e7f3ff;
+        }
+
+        .distribution-table .clickable-cell {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .distribution-table .clickable-cell:hover {
+            background: #667eea !important;
+            color: white;
+            transform: scale(1.1);
+            font-weight: bold;
+        }
+
+        .journal-filter {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .journal-filter h4 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .filter-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 0.9rem;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 0.95rem;
+        }
+
+        .filter-btn {
+            background: linear-gradient(45deg, #17a2b8, #138496);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .modal-close {
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #ddd;
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            text-align: right;
+        }
+
+        .csv-export-btn {
+            background: linear-gradient(45deg, #17a2b8, #138496);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .csv-export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(23, 162, 184, 0.3);
+        }
+
+        .dog-list-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .dog-list-table th {
+            background: #f8f9fa;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .dog-list-table td {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .dog-list-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .instructions {
+            background: #e7f3ff;
+            border: 2px solid #b8daff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #004085;
+        }
+
+        .instructions h4 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 C-WAGS Stats Checker</h1>
+            <p>Top 10 Leaderboards by Category and Class</p>
+        </div>
+
+        <div class="file-upload-section" id="uploadSection">
+            <div class="file-upload-container">
+                <div class="instructions">
+                    <h4>📁 Instructions:</h4>
+                    <ol>
+                        <li><strong>Click on the boxes below</strong> to select your files (or drag & drop them!)</li>
+                        <li>Select your Excel files from your computer</li>
+                        <li>Wait for both files to show "✅ loaded"</li>
+                        <li>Click "Process Stats" button</li>
+                    </ol>
+                </div>
+
+                <div class="file-input-group" id="trialingFileGroup" onclick="document.getElementById('trialingFile').click()">
+                    <div class="file-upload-icon">📊</div>
+                    <label>Data for Tracker web.xlsx</label>
+                    <input type="file" id="trialingFile" accept=".xlsx,.xls">
+                    <div class="file-upload-prompt">Click here or drag & drop file</div>
+                    <div class="file-status" id="trialingStatus">No file selected</div>
+                </div>
+
+                <div class="file-input-group" id="dogInfoFileGroup" onclick="document.getElementById('dogInfoFile').click()">
+                    <div class="file-upload-icon">🐕</div>
+                    <label>DogInfo.xlsx</label>
+                    <input type="file" id="dogInfoFile" accept=".xlsx,.xls">
+                    <div class="file-upload-prompt">Click here or drag & drop file</div>
+                    <div class="file-status" id="dogInfoStatus">No file selected</div>
+                </div>
+
+                <button class="process-btn" id="processBtn" disabled onclick="processFiles()">
+                    Process Stats
+                </button>
+            </div>
+        </div>
+
+        <div class="status" id="statusSection">
+            <div class="status-message" id="statusMessage"></div>
+        </div>
+
+        <div class="ranking-info" id="rankingInfo" style="display: none;">
+            <h4>🏆 Ranking System:</h4>
+            <p><strong>Score = (Total Q's × 1) + (Titles × 20) + (Aces × 30)</strong></p>
+            <p>• Each Q counts as 1 point</p>
+            <p>• Each Title earned adds 20 bonus points</p>
+            <p>• Each Ace earned adds 30 bonus points</p>
+            <p style="margin-top: 10px;"><strong>📋 Title Requirements:</strong></p>
+            <p>• Most levels: 4 Q's + 2 different judges</p>
+            <p>• <strong>Games levels:</strong> 4 Q's + 2 different judges + <strong>2 different game types</strong> (C, T, P, GB, or BJ)</p>
+            <p style="margin-top: 10px; font-style: italic;">This rewards dogs who not only compete often but also achieve titles and excellence awards!</p>
+        </div>
+
+        <div class="export-section" id="exportSection">
+            <button class="export-btn" onclick="exportCurrentTab()">
+                📥 Export Current Tab to Excel
+            </button>
+            <button class="export-btn export-all-btn" onclick="exportAllTabs()">
+                📥 Export All Tabs to Excel
+            </button>
+        </div>
+
+        <div class="nav-tabs" id="navTabs">
+            <!-- Tabs will be added here dynamically -->
+        </div>
+
+        <div class="content" id="content">
+            <!-- Content will be added here dynamically -->
+        </div>
+    </div>
+
+    <!-- Modal for showing dog lists -->
+    <div id="dogListModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle"></h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dog list will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button class="csv-export-btn" onclick="exportModalToCSV()">
+                    📥 Export to CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Global data storage
+        let trialingData = [];
+        let dogInfoData = {};
+        let statsResults = {};
+        let achievementJournal = [];
+        let trialingFileData = null;
+        let dogInfoFileData = null;
+        let currentActiveTab = 'overall';
+
+        // Level categories
+        const categories = {
+            scent: ["Patrol 1", "Detective 2", "Investigator 3", "Super Sleuth 4", "Private Inv", "Det Diversions",
+                    "Ranger 1", "Ranger 2", "Ranger 3", "Ranger 4", "Ranger 5",
+                    "Dasher 3", "Dasher 4", "Dasher 5", "Dasher 6"],
+            obedience: ["Obedience 1", "Obedience 2", "Obedience 3", "Obedience 4", "Obedience 5"],
+            rally: ["Starter", "Advanced", "Pro", "ARF", "Zoom 1", "Zoom 1.5", "Zoom 2"],
+            games: ["Games 1", "Games 2", "Games 3", "Games 4"]
+        };
+
+        // Scent level mapping for weighted scoring
+        const scentLevels = {
+            "Patrol 1": 1,
+            "Ranger 1": 1,
+            "Detective 2": 2,
+            "Ranger 2": 2,
+            "Investigator 3": 3,
+            "Ranger 3": 3,
+            "Dasher 3": 3,
+            "Super Sleuth 4": 4,
+            "Ranger 4": 4,
+            "Dasher 4": 4,
+            "Private Inv": 5,
+            "Det Diversions": 5,
+            "Ranger 5": 5,
+            "Dasher 5": 5,
+            "Dasher 6": 6
+        };
+
+        const allLevels = [...categories.scent, ...categories.obedience, ...categories.rally, ...categories.games];
+
+        const titleAbbreviations = {
+            "Patrol 1": "CW-SP", "Detective 2": "CW-SD", "Investigator 3": "CW-SI",
+            "Super Sleuth 4": "CW-SS", "Private Inv": "CW-SPI", "Det Diversions": "CW-SDD",
+            "Ranger 1": "CW-ScR1", "Ranger 2": "CW-ScR2", "Ranger 3": "CW-ScR3",
+            "Ranger 4": "CW-ScR4", "Ranger 5": "CW-ScR5",
+            "Dasher 3": "CW-SD3", "Dasher 4": "CW-SD4", "Dasher 5": "CW-SD5", "Dasher 6": "CW-SD6",
+            "Obedience 1": "CW-Ob1", "Obedience 2": "CW-Ob2", "Obedience 3": "CW-Ob3",
+            "Obedience 4": "CW-Ob4", "Obedience 5": "CW-Ob5",
+            "Starter": "CW-SR", "Advanced": "CW-AR", "Pro": "CW-PR", "ARF": "CW-ARF",
+            "Zoom 1": "CW-ZR1", "Zoom 1.5": "CW-ZR1.5", "Zoom 2": "CW-ZR2",
+            "Games 1": "CW-G1", "Games 2": "CW-G2", "Games 3": "CW-G3", "Games 4": "CW-G4"
+        };
+
+        // File input handlers
+        document.getElementById('trialingFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    trialingFileData = e.target.result;
+                    document.getElementById('trialingStatus').textContent = '✅ ' + file.name + ' loaded';
+                    document.getElementById('trialingStatus').className = 'file-status loaded';
+                    document.getElementById('trialingFileGroup').classList.add('loaded');
+                    checkFilesReady();
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+
+        document.getElementById('dogInfoFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    dogInfoFileData = e.target.result;
+                    document.getElementById('dogInfoStatus').textContent = '✅ ' + file.name + ' loaded';
+                    document.getElementById('dogInfoStatus').className = 'file-status loaded';
+                    document.getElementById('dogInfoFileGroup').classList.add('loaded');
+                    checkFilesReady();
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+
+        // Drag and drop support
+        function setupDragAndDrop(groupId, inputId) {
+            const group = document.getElementById(groupId);
+            const input = document.getElementById(inputId);
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                group.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                group.addEventListener(eventName, () => {
+                    group.classList.add('dragover');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                group.addEventListener(eventName, () => {
+                    group.classList.remove('dragover');
+                });
+            });
+
+            group.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    input.files = files;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        }
+
+        setupDragAndDrop('trialingFileGroup', 'trialingFile');
+        setupDragAndDrop('dogInfoFileGroup', 'dogInfoFile');
+
+        function checkFilesReady() {
+            const btn = document.getElementById('processBtn');
+            if (trialingFileData && dogInfoFileData) {
+                btn.disabled = false;
+                btn.textContent = '🚀 Process Stats';
+            }
+        }
+
+        // Process files
+        function processFiles() {
+            showStatus('loading', '📄 Processing data...');
+            
+            setTimeout(() => {
+                try {
+                    // Load DogInfo
+                    const dogInfoWorkbook = XLSX.read(new Uint8Array(dogInfoFileData), { cellDates: true });
+                    const dogInfoSheet = dogInfoWorkbook.Sheets[dogInfoWorkbook.SheetNames[0]];
+                    const dogInfoJson = XLSX.utils.sheet_to_json(dogInfoSheet, {header: 1});
+                    
+                    dogInfoJson.slice(1).forEach(row => {
+                        if (row && row[0]) {
+                            const regNumber = row[0].toString().trim();
+                            dogInfoData[regNumber] = {
+                                callName: row[1] ? row[1].toString().trim() : '',
+                                registeredName: row[2] ? row[2].toString().trim() : '',
+                                handlerName: row[3] ? row[3].toString().trim() : ''
+                            };
+                        }
+                    });
+                    
+                    console.log('✅ DogInfo loaded:', Object.keys(dogInfoData).length, 'dogs');
+                    
+                    // Load trialing data
+                    const trialingWorkbook = XLSX.read(trialingFileData, {type: 'array', cellDates: true});
+                    const dataSheet = trialingWorkbook.Sheets['Data'] || trialingWorkbook.Sheets[trialingWorkbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(dataSheet, {header: 1, dateNF: 'yyyy-mm-dd'});
+                    
+                    trialingData = jsonData.slice(1).map(row => {
+                        let processedDate = row[2];
+                        
+                        if (typeof processedDate === 'number') {
+                            processedDate = XLSX.SSF.parse_date_code(processedDate);
+                            processedDate = new Date(processedDate.y, processedDate.m - 1, processedDate.d);
+                        } else if (typeof processedDate === 'string') {
+                            processedDate = new Date(processedDate);
+                        } else if (processedDate instanceof Date) {
+                            processedDate = processedDate;
+                        } else {
+                            processedDate = null;
+                        }
+                        
+                        return {
+                            registrationNumber: row[0],
+                            callName: row[1],
+                            date: processedDate,
+                            level: row[3],
+                            results: row[4],
+                            judge: row[5],
+                            Qs: parseFloat(row[6]) || 0
+                        };
+                    }).filter(record => record.registrationNumber && record.level);
+                    
+                    console.log('✅ Trialing data loaded:', trialingData.length, 'records');
+                    
+                    // Process stats
+                    processAllDogs();
+                    
+                    // Generate achievement journal
+                    generateAchievementJournal();
+                    
+                    // Hide upload section and show results
+                    document.getElementById('uploadSection').style.display = 'none';
+                    document.getElementById('rankingInfo').style.display = 'block';
+                    document.getElementById('exportSection').classList.add('show');
+                    showStatus('success', '✅ Processing complete! Showing stats for ' + Object.keys(statsResults).length + ' dogs');
+                    
+                    // Render results
+                    renderAllLeaderboards();
+                    
+                } catch (error) {
+                    console.error('Error processing files:', error);
+                    showStatus('error', '❌ Error processing files: ' + error.message);
+                }
+            }, 100);
+        }
+
+        function showStatus(type, message) {
+            const statusSection = document.getElementById('statusSection');
+            const statusMessage = document.getElementById('statusMessage');
+            statusSection.classList.add('show');
+            statusMessage.innerHTML = `<span class="${type}">${message}</span>`;
+        }
+
+        // Calculate titles for a dog at a specific level AND track achievements
+        function calculateTitlesWithAchievements(records, dogInfo, level) {
+            const sortedRecords = records
+                .filter(r => r.Qs > 0 && r.date instanceof Date && !isNaN(r.date))
+                .sort((a, b) => a.date - b.date);
+            
+            let cumulativeQs = 0;
+            let judges = new Set();
+            let gameTypes = new Set();  // Track unique game types for Games levels
+            let titleQs = 0;
+            let hasTitle = false;
+            let achievements = [];
+            
+            // Check if this is a Games level
+            const isGamesLevel = categories.games.includes(level);
+            
+            for (const record of sortedRecords) {
+                const prevQs = cumulativeQs;
+                const prevJudgeCount = judges.size;
+                const prevGameTypeCount = gameTypes.size;
+                
+                cumulativeQs += record.Qs;
+                if (record.judge) judges.add(record.judge);
+                
+                // For Games levels, track game types from Results column
+                if (isGamesLevel && record.results) {
+                    const gameType = record.results.toString().trim().toUpperCase();
+                    // Valid game types: C, T, P, GB, BJ
+                    // (Container Search, other game variations)
+                    if (['C', 'T', 'P', 'GB', 'BJ'].includes(gameType)) {
+                        gameTypes.add(gameType);
+                    }
+                }
+                
+                // Title requirements differ for Games vs other levels
+                let nowHasTitle;
+                let previouslyHadTitle;
+                
+                if (isGamesLevel) {
+                    // Games: Need 4 Q's + 2 judges + 2 game types
+                    nowHasTitle = cumulativeQs >= 4 && judges.size >= 2 && gameTypes.size >= 2;
+                    previouslyHadTitle = prevQs >= 4 && prevJudgeCount >= 2 && prevGameTypeCount >= 2;
+                } else {
+                    // All other levels: Need 4 Q's + 2 judges
+                    nowHasTitle = cumulativeQs >= 4 && judges.size >= 2;
+                    previouslyHadTitle = prevQs >= 4 && prevJudgeCount >= 2;
+                }
+                
+                // Title earned
+                if (nowHasTitle && !previouslyHadTitle) {
+                    hasTitle = true;
+                    let QsTowardTitle = record.Qs;
+                    
+                    if (isGamesLevel) {
+                        // For Games: Need to check which requirement was just met
+                        if (prevQs >= 4 && prevJudgeCount >= 2 && prevGameTypeCount < 2) {
+                            // Only needed the game type
+                            QsTowardTitle = 1;
+                        } else if (prevQs >= 4 && prevGameTypeCount >= 2 && prevJudgeCount < 2) {
+                            // Only needed the judge
+                            QsTowardTitle = 1;
+                        } else if (prevJudgeCount >= 2 && prevGameTypeCount >= 2 && prevQs < 4) {
+                            // Only needed Q's
+                            QsTowardTitle = 4 - prevQs;
+                        } else {
+                            // Multiple requirements met at once
+                            QsTowardTitle = Math.min(record.Qs, 4 - prevQs);
+                        }
+                    } else {
+                        // For non-Games levels
+                        if (prevQs >= 4 && prevJudgeCount < 2) {
+                            QsTowardTitle = 1;
+                        } else if (prevJudgeCount >= 2 && prevQs < 4) {
+                            QsTowardTitle = 4 - prevQs;
+                        } else if (prevQs < 4 && prevJudgeCount < 2) {
+                            QsTowardTitle = Math.min(record.Qs, 4 - prevQs);
+                        }
+                    }
+                    
+                    titleQs = prevQs + QsTowardTitle;
+                    
+                    // Record title achievement
+                    achievements.push({
+                        date: record.date,
+                        registrationNumber: dogInfo.registrationNumber,
+                        callName: dogInfo.callName,
+                        handlerName: dogInfo.handlerName,
+                        level: level,
+                        judge: record.judge || 'Unknown',
+                        achievement: 'Title',
+                        achievementType: 'title'
+                    });
+                }
+                
+                // Check for aces (earned after title)
+                if (hasTitle && cumulativeQs > titleQs) {
+                    const aceQsNow = cumulativeQs - titleQs;
+                    const aceQsPrev = prevQs - titleQs;
+                    const aceCountNow = Math.floor(aceQsNow / 10);
+                    const aceCountPrev = Math.floor(aceQsPrev / 10);
+                    
+                    // If we crossed an ace threshold
+                    if (aceCountNow > aceCountPrev) {
+                        for (let aceNum = aceCountPrev + 1; aceNum <= aceCountNow; aceNum++) {
+                            achievements.push({
+                                date: record.date,
+                                registrationNumber: dogInfo.registrationNumber,
+                                callName: dogInfo.callName,
+                                handlerName: dogInfo.handlerName,
+                                level: level,
+                                judge: record.judge || 'Unknown',
+                                achievement: aceNum === 1 ? 'Ace' : `Ace x${aceNum}`,
+                                achievementType: aceNum === 1 ? 'ace' : `ace${aceNum}`
+                            });
+                        }
+                    }
+                }
+            }
+            
+            const totalQs = sortedRecords.reduce((sum, r) => sum + r.Qs, 0);
+            
+            if (hasTitle) {
+                const aceQs = Math.max(0, totalQs - titleQs);
+                const aceCount = Math.floor(aceQs / 10);
+                return { 
+                    hasTitle: true, 
+                    aceCount, 
+                    totalQs, 
+                    titleQs, 
+                    achievements 
+                };
+            }
+            
+            return { 
+                hasTitle: false, 
+                aceCount: 0, 
+                totalQs, 
+                titleQs: 0, 
+                achievements 
+            };
+        }
+
+        // Generate achievement journal
+        function generateAchievementJournal() {
+            achievementJournal = [];
+            
+            Object.keys(statsResults).forEach(regNumber => {
+                const dog = statsResults[regNumber];
+                
+                Object.keys(dog.levels).forEach(level => {
+                    const levelData = dog.levels[level];
+                    if (levelData.achievements) {
+                        achievementJournal.push(...levelData.achievements);
+                    }
+                });
+            });
+            
+            // Sort chronologically (oldest first)
+            achievementJournal.sort((a, b) => a.date - b.date);
+            
+            console.log('✅ Achievement journal generated:', achievementJournal.length, 'achievements');
+        }
+
+        // Calculate score based on Q's, titles, and aces
+        function calculateScore(qCount, titleCount, aceCount) {
+            // 1 point per Q, 20 points per title, 30 points per ace
+            return (qCount * 1) + (titleCount * 20) + (aceCount * 30);
+        }
+
+        // Check Master Scent qualifications
+        function checkMasterScentQualifications(dog) {
+            const hasAceIn = (level) => {
+                return dog.levels[level] && dog.levels[level].hasTitle && dog.levels[level].aceCount >= 1;
+            };
+
+            // Master Scent Level 4
+            const masterLevel4 = hasAceIn("Super Sleuth 4") && 
+                                 hasAceIn("Ranger 4") && 
+                                 hasAceIn("Dasher 4");
+
+            // Master Scent Level 5
+            const hasPrivateInvAce = hasAceIn("Private Inv");
+            const hasDetDiversionsAce = hasAceIn("Det Diversions");
+            const masterLevel5 = (hasPrivateInvAce || hasDetDiversionsAce) && 
+                                 hasAceIn("Ranger 5") && 
+                                 hasAceIn("Dasher 5");
+
+            // Grand Master Scent - ace in ALL scent classes
+            const allScentClasses = categories.scent;
+            const grandMaster = allScentClasses.every(level => hasAceIn(level));
+
+            return {
+                masterLevel4,
+                masterLevel5,
+                grandMaster,
+                aceDetails: {
+                    "Super Sleuth 4": dog.levels["Super Sleuth 4"]?.aceCount || 0,
+                    "Ranger 4": dog.levels["Ranger 4"]?.aceCount || 0,
+                    "Dasher 4": dog.levels["Dasher 4"]?.aceCount || 0,
+                    "Private Inv": dog.levels["Private Inv"]?.aceCount || 0,
+                    "Det Diversions": dog.levels["Det Diversions"]?.aceCount || 0,
+                    "Ranger 5": dog.levels["Ranger 5"]?.aceCount || 0,
+                    "Dasher 5": dog.levels["Dasher 5"]?.aceCount || 0
+                }
+            };
+        }
+
+        // Process all dogs and calculate stats
+        function processAllDogs() {
+            console.log('📄 Processing all dogs...');
+            
+            const dogStats = {};
+            
+            // Group records by dog
+            trialingData.forEach(record => {
+                const regNumber = record.registrationNumber;
+                
+                if (!dogStats[regNumber]) {
+                    dogStats[regNumber] = {
+                        registrationNumber: regNumber,
+                        callName: dogInfoData[regNumber]?.callName || record.callName || 'Unknown',
+                        handlerName: dogInfoData[regNumber]?.handlerName || '',
+                        levels: {},
+                        totalQs: 0,
+                        totalTitles: 0,
+                        totalAces: 0,
+                        categoryQs: { scent: 0, obedience: 0, rally: 0, games: 0 },
+                        categoryTitles: { scent: 0, obedience: 0, rally: 0, games: 0 },
+                        categoryAces: { scent: 0, obedience: 0, rally: 0, games: 0 },
+                        scentWeightedScore: 0
+                    };
+                }
+                
+                if (!dogStats[regNumber].levels[record.level]) {
+                    dogStats[regNumber].levels[record.level] = [];
+                }
+                
+                dogStats[regNumber].levels[record.level].push(record);
+            });
+            
+            // Calculate stats for each dog
+            Object.keys(dogStats).forEach(regNumber => {
+                const dog = dogStats[regNumber];
+                
+                Object.keys(dog.levels).forEach(level => {
+                    const records = dog.levels[level];
+                    const titleInfo = calculateTitlesWithAchievements(records, {
+                        registrationNumber: dog.registrationNumber,
+                        callName: dog.callName,
+                        handlerName: dog.handlerName
+                    }, level);
+                    
+                    dog.levels[level] = {
+                        records,
+                        ...titleInfo
+                    };
+                    
+                    const totalQs = titleInfo.totalQs;
+                    dog.totalQs += totalQs;
+                    
+                    if (titleInfo.hasTitle) {
+                        dog.totalTitles += 1;
+                        dog.totalAces += titleInfo.aceCount;
+                    }
+                    
+                    // Add to category totals
+                    if (categories.scent.includes(level)) {
+                        dog.categoryQs.scent += totalQs;
+                        if (titleInfo.hasTitle) {
+                            dog.categoryTitles.scent += 1;
+                            dog.categoryAces.scent += titleInfo.aceCount;
+                        }
+                        const levelWeight = scentLevels[level] || 1;
+                        dog.scentWeightedScore += totalQs * levelWeight;
+                    }
+                    if (categories.obedience.includes(level)) {
+                        dog.categoryQs.obedience += totalQs;
+                        if (titleInfo.hasTitle) {
+                            dog.categoryTitles.obedience += 1;
+                            dog.categoryAces.obedience += titleInfo.aceCount;
+                        }
+                    }
+                    if (categories.rally.includes(level)) {
+                        dog.categoryQs.rally += totalQs;
+                        if (titleInfo.hasTitle) {
+                            dog.categoryTitles.rally += 1;
+                            dog.categoryAces.rally += titleInfo.aceCount;
+                        }
+                    }
+                    if (categories.games.includes(level)) {
+                        dog.categoryQs.games += totalQs;
+                        if (titleInfo.hasTitle) {
+                            dog.categoryTitles.games += 1;
+                            dog.categoryAces.games += titleInfo.aceCount;
+                        }
+                    }
+                });
+
+                // Check master scent qualifications
+                dog.masterScent = checkMasterScentQualifications(dog);
+            });
+            
+            statsResults = dogStats;
+            console.log('✅ Processed', Object.keys(dogStats).length, 'dogs');
+        }
+
+        // Render achievement journal
+        function renderAchievementJournal() {
+            let html = `
+                <div class="leaderboard">
+                    <div class="leaderboard-header journal">📖 Achievement Journal - All Titles & Aces</div>
+                    <div style="padding: 20px;">
+                        <p style="color: #6c757d; margin-bottom: 20px; font-style: italic;">
+                            📅 Complete chronological record of all titles and aces earned - oldest to newest (showing ${achievementJournal.length} achievements)
+                        </p>
+                        
+                        <table class="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Date Earned</th>
+                                    <th>C-WAGS #</th>
+                                    <th>Dog Name</th>
+                                    <th>Handler</th>
+                                    <th>Class</th>
+                                    <th>Judge</th>
+                                    <th>Achievement</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            achievementJournal.forEach(achievement => {
+                const dateStr = achievement.date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                
+                let badgeClass = achievement.achievementType;
+                if (achievement.achievementType.startsWith('ace')) {
+                    const aceNum = parseInt(achievement.achievementType.replace('ace', '')) || 1;
+                    if (aceNum >= 5) {
+                        badgeClass = 'ace5plus';
+                    } else if (aceNum >= 4) {
+                        badgeClass = 'ace4';
+                    } else if (aceNum >= 3) {
+                        badgeClass = 'ace3';
+                    } else if (aceNum >= 2) {
+                        badgeClass = 'ace2';
+                    } else {
+                        badgeClass = 'ace';
+                    }
+                }
+                
+                html += `
+                    <tr>
+                        <td>${dateStr}</td>
+                        <td>${achievement.registrationNumber}</td>
+                        <td class="dog-name">${achievement.callName}</td>
+                        <td>${achievement.handlerName || '-'}</td>
+                        <td><strong>${achievement.level}</strong></td>
+                        <td>${achievement.judge}</td>
+                        <td>
+                            <span class="achievement-badge ${badgeClass}">
+                                ${achievement.achievement}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        // Calculate distribution statistics
+        function calculateDistribution() {
+            const distribution = {};
+            
+            allLevels.forEach(level => {
+                distribution[level] = {
+                    title: 0,
+                    ace: 0,
+                    ace2: 0,
+                    ace3: 0,
+                    ace4: 0,
+                    ace5: 0,
+                    ace6: 0,
+                    ace7: 0,
+                    ace8: 0
+                };
+            });
+            
+            Object.values(statsResults).forEach(dog => {
+                Object.keys(dog.levels).forEach(level => {
+                    const levelData = dog.levels[level];
+                    if (levelData.hasTitle) {
+                        distribution[level].title += 1;
+                        
+                        const aceCount = levelData.aceCount;
+                        if (aceCount >= 1) distribution[level].ace += 1;
+                        if (aceCount >= 2) distribution[level].ace2 += 1;
+                        if (aceCount >= 3) distribution[level].ace3 += 1;
+                        if (aceCount >= 4) distribution[level].ace4 += 1;
+                        if (aceCount >= 5) distribution[level].ace5 += 1;
+                        if (aceCount >= 6) distribution[level].ace6 += 1;
+                        if (aceCount >= 7) distribution[level].ace7 += 1;
+                        if (aceCount >= 8) distribution[level].ace8 += 1;
+                    }
+                });
+            });
+            
+            return distribution;
+        }
+
+        // Get dogs who have achieved a specific level
+        function getDogsWithAchievement(level, achievementType) {
+            const dogs = Object.values(statsResults);
+            const qualifiers = [];
+            
+            dogs.forEach(dog => {
+                const levelData = dog.levels[level];
+                if (!levelData) return;
+                
+                let qualifies = false;
+                
+                if (achievementType === 'title' && levelData.hasTitle) {
+                    qualifies = true;
+                } else if (achievementType === 'ace' && levelData.hasTitle && levelData.aceCount >= 1) {
+                    qualifies = true;
+                } else if (achievementType === 'ace2' && levelData.hasTitle && levelData.aceCount >= 2) {
+                    qualifies = true;
+                } else if (achievementType === 'ace3' && levelData.hasTitle && levelData.aceCount >= 3) {
+                    qualifies = true;
+                } else if (achievementType === 'ace4' && levelData.hasTitle && levelData.aceCount >= 4) {
+                    qualifies = true;
+                } else if (achievementType === 'ace5' && levelData.hasTitle && levelData.aceCount >= 5) {
+                    qualifies = true;
+                } else if (achievementType === 'ace6' && levelData.hasTitle && levelData.aceCount >= 6) {
+                    qualifies = true;
+                } else if (achievementType === 'ace7' && levelData.hasTitle && levelData.aceCount >= 7) {
+                    qualifies = true;
+                } else if (achievementType === 'ace8' && levelData.hasTitle && levelData.aceCount >= 8) {
+                    qualifies = true;
+                }
+                
+                if (qualifies) {
+                    qualifiers.push({
+                        callName: dog.callName,
+                        registrationNumber: dog.registrationNumber,
+                        handlerName: dog.handlerName,
+                        totalQs: levelData.totalQs,
+                        aceCount: levelData.aceCount
+                    });
+                }
+            });
+            
+            return qualifiers.sort((a, b) => {
+                if (b.aceCount !== a.aceCount) return b.aceCount - a.aceCount;
+                return b.totalQs - a.totalQs;
+            });
+        }
+
+        // Show modal with dog list
+        let currentModalData = null;
+        
+        function showDogList(level, achievementType) {
+            const dogs = getDogsWithAchievement(level, achievementType);
+            currentModalData = { level, achievementType, dogs };
+            
+            const achievementLabels = {
+                'title': 'Title',
+                'ace': 'Ace (1+)',
+                'ace2': 'Ace 2+',
+                'ace3': 'Ace 3+',
+                'ace4': 'Ace 4+',
+                'ace5': 'Ace 5+',
+                'ace6': 'Ace 6+',
+                'ace7': 'Ace 7+',
+                'ace8': 'Ace 8+'
+            };
+            
+            document.getElementById('modalTitle').textContent = 
+                `${level} - ${achievementLabels[achievementType]} (${dogs.length} dogs)`;
+            
+            let html = `
+                <table class="dog-list-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Dog Name</th>
+                            <th>C-WAGS Number</th>
+                            <th>Handler</th>
+                            <th>Total Q's</th>
+                            <th>Ace Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            dogs.forEach((dog, index) => {
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td><strong>${dog.callName}</strong></td>
+                        <td>${dog.registrationNumber}</td>
+                        <td>${dog.handlerName || '-'}</td>
+                        <td>${dog.totalQs}</td>
+                        <td>${dog.aceCount}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('dogListModal').classList.add('show');
+        }
+        
+        function closeModal() {
+            document.getElementById('dogListModal').classList.remove('show');
+        }
+        
+        window.onclick = function(event) {
+            const modal = document.getElementById('dogListModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+        
+        function exportModalToCSV() {
+            if (!currentModalData) return;
+            
+            const { level, achievementType, dogs } = currentModalData;
+            const achievementLabels = {
+                'title': 'Title',
+                'ace': 'Ace_1+',
+                'ace2': 'Ace_2+',
+                'ace3': 'Ace_3+',
+                'ace4': 'Ace_4+',
+                'ace5': 'Ace_5+',
+                'ace6': 'Ace_6+',
+                'ace7': 'Ace_7+',
+                'ace8': 'Ace_8+'
+            };
+            
+            let csv = 'Dog Name,C-WAGS Number,Handler,Total Q\'s,Ace Count\n';
+            
+            dogs.forEach(dog => {
+                csv += `"${dog.callName}","${dog.registrationNumber}","${dog.handlerName || '-'}",${dog.totalQs},${dog.aceCount}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `CWAGS_${level.replace(/\s+/g, '_')}_${achievementLabels[achievementType]}_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Get dogs with master qualifications
+        function getMasterQualifiers(masterType) {
+            const dogs = Object.values(statsResults);
+            
+            if (masterType === 'masterLevel4') {
+                return dogs.filter(dog => dog.masterScent.masterLevel4);
+            } else if (masterType === 'masterLevel5') {
+                return dogs.filter(dog => dog.masterScent.masterLevel5);
+            } else if (masterType === 'grandMaster') {
+                return dogs.filter(dog => dog.masterScent.grandMaster);
+            }
+            
+            return [];
+        }
+
+        // Get top 10 for a category
+        function getTop10(category = 'overall') {
+            const dogs = Object.values(statsResults);
+            
+            if (category === 'overall') {
+                return dogs
+                    .filter(dog => dog.totalQs > 0)
+                    .map(dog => ({
+                        ...dog,
+                        score: calculateScore(dog.totalQs, dog.totalTitles, dog.totalAces),
+                        displayQs: dog.totalQs,
+                        displayTitles: dog.totalTitles,
+                        displayAces: dog.totalAces
+                    }))
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, 10);
+            } else if (category === 'scent') {
+                return dogs
+                    .filter(dog => dog.categoryQs.scent > 0)
+                    .map(dog => ({
+                        ...dog,
+                        score: dog.scentWeightedScore,
+                        displayQs: dog.categoryQs.scent,
+                        displayTitles: dog.categoryTitles.scent,
+                        displayAces: dog.categoryAces.scent
+                    }))
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, 10);
+            } else if (categories[category]) {
+                return dogs
+                    .filter(dog => dog.categoryQs[category] > 0)
+                    .map(dog => ({
+                        ...dog,
+                        score: calculateScore(
+                            dog.categoryQs[category],
+                            dog.categoryTitles[category],
+                            dog.categoryAces[category]
+                        ),
+                        displayQs: dog.categoryQs[category],
+                        displayTitles: dog.categoryTitles[category],
+                        displayAces: dog.categoryAces[category]
+                    }))
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, 10);
+            } else {
+                return dogs
+                    .filter(dog => dog.levels[category] && dog.levels[category].totalQs > 0)
+                    .map(dog => {
+                        const levelData = dog.levels[category];
+                        const titleCount = levelData.hasTitle ? 1 : 0;
+                        const aceCount = levelData.aceCount;
+                        
+                        return {
+                            ...dog,
+                            score: calculateScore(levelData.totalQs, titleCount, aceCount),
+                            displayQs: levelData.totalQs,
+                            displayTitles: titleCount,
+                            displayAces: aceCount
+                        };
+                    })
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, 10);
+            }
+        }
+
+        // Get titles display for a dog (filtered by category)
+        function getTitlesDisplay(dog, category = 'overall') {
+            const titles = [];
+            
+            let levelsToShow = [];
+            
+            if (category === 'overall' || category.startsWith('master') || category === 'grandMaster' || category === 'journal') {
+                levelsToShow = Object.keys(dog.levels);
+            } else if (categories[category]) {
+                levelsToShow = categories[category];
+            } else {
+                levelsToShow = [category];
+            }
+            
+            Object.keys(dog.levels).forEach(level => {
+                if (!levelsToShow.includes(level)) return;
+                
+                const levelData = dog.levels[level];
+                if (levelData.hasTitle) {
+                    const abbrev = titleAbbreviations[level] || level;
+                    if (levelData.aceCount > 0) {
+                        titles.push({ text: `${abbrev}A${levelData.aceCount > 1 ? 'x' + levelData.aceCount : ''}`, isAce: true });
+                    } else {
+                        titles.push({ text: abbrev, isAce: false });
+                    }
+                }
+            });
+            
+            return titles;
+        }
+
+        // Render distribution table
+        function renderDistributionTable() {
+            const distribution = calculateDistribution();
+            
+            let html = `
+                <div class="leaderboard">
+                    <div class="leaderboard-header">📊 Title & Ace Distribution by Class</div>
+                    <div style="padding: 20px; overflow-x: auto;">
+                        <p style="color: #6c757d; margin-bottom: 15px; font-style: italic;">
+                            💡 Click on any number to see all dogs who have achieved that level
+                        </p>
+                        <table class="distribution-table">
+                            <thead>
+                                <tr>
+                                    <th>Class</th>
+                                    <th>Title</th>
+                                    <th class="ace-header">Ace</th>
+                                    <th class="ace-header">Ace 2</th>
+                                    <th class="ace-header">Ace 3</th>
+                                    <th class="ace-header">Ace 4</th>
+                                    <th class="ace-header">Ace 5</th>
+                                    <th class="ace-header">Ace 6</th>
+                                    <th class="ace-header">Ace 7</th>
+                                    <th class="ace-header">Ace 8</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            const categoryGroups = [
+                { name: 'Scent', levels: categories.scent, id: 'scent' },
+                { name: 'Obedience', levels: categories.obedience, id: 'obedience' },
+                { name: 'Rally', levels: categories.rally, id: 'rally' },
+                { name: 'Games', levels: categories.games, id: 'games' }
+            ];
+            
+            categoryGroups.forEach(group => {
+                html += `
+                    <tr>
+                        <td colspan="10" class="category-header" onclick="switchTab('${group.id}')">
+                            ${group.name} (Click to view Top 10)
+                        </td>
+                    </tr>
+                `;
+                
+                group.levels.forEach(level => {
+                    const dist = distribution[level];
+                    html += `
+                        <tr>
+                            <td class="class-name" onclick="switchTab('${level}')">${level}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'title')">${dist.title}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'ace')">${dist.ace}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'ace2')">${dist.ace2}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'ace3')">${dist.ace3}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'ace4')">${dist.ace4}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'ace5')">${dist.ace5}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'ace6')">${dist.ace6}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'ace7')">${dist.ace7}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'ace8')">${dist.ace8}</td>
+                        </tr>
+                    `;
+                });
+            });
+            
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        // Render master achievements
+        function renderMasterAchievements(masterType, title, requirements) {
+            const qualifiers = getMasterQualifiers(masterType);
+            
+            let html = `
+                <div class="leaderboard">
+                    <div class="leaderboard-header master">${title}</div>
+                    <div style="padding: 20px;">
+                        <div class="requirements-list">
+                            <h4>🎯 Requirements:</h4>
+                            <ul>${requirements.map(req => `<li>${req}</li>`).join('')}</ul>
+                        </div>
+            `;
+            
+            if (qualifiers.length === 0) {
+                html += `<div class="no-qualifiers">🏆 No dogs have achieved this level yet!</div>`;
+            } else {
+                html += `
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Dog Name</th>
+                                <th>Handler</th>
+                                <th>Ace Details</th>
+                                <th>All Titles Earned</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                qualifiers.forEach(dog => {
+                    const titles = getTitlesDisplay(dog, 'overall');
+                    const titlesHtml = titles.map(t => `<span class="title-badge ${t.isAce ? 'ace' : ''}">${t.text}</span>`).join('');
+                    
+                    let aceDetailsHtml = '';
+                    if (masterType === 'masterLevel4') {
+                        aceDetailsHtml = `
+                            <div class="ace-details">
+                                Super Sleuth 4: ${dog.masterScent.aceDetails["Super Sleuth 4"]} ace(s)<br>
+                                Ranger 4: ${dog.masterScent.aceDetails["Ranger 4"]} ace(s)<br>
+                                Dasher 4: ${dog.masterScent.aceDetails["Dasher 4"]} ace(s)
+                            </div>
+                        `;
+                    } else if (masterType === 'masterLevel5') {
+                        aceDetailsHtml = `
+                            <div class="ace-details">
+                                Private Inv: ${dog.masterScent.aceDetails["Private Inv"]} ace(s)<br>
+                                Det Diversions: ${dog.masterScent.aceDetails["Det Diversions"]} ace(s)<br>
+                                Ranger 5: ${dog.masterScent.aceDetails["Ranger 5"]} ace(s)<br>
+                                Dasher 5: ${dog.masterScent.aceDetails["Dasher 5"]} ace(s)
+                            </div>
+                        `;
+                    } else if (masterType === 'grandMaster') {
+                        const scentAces = categories.scent.map(level => 
+                            `${titleAbbreviations[level]}: ${dog.levels[level]?.aceCount || 0}`
+                        ).join(' | ');
+                        aceDetailsHtml = `<div class="ace-details">${scentAces}</div>`;
+                    }
+                    
+                    html += `
+                        <tr>
+                            <td class="dog-name">
+                                ${dog.callName}<br>
+                                <small style="color: #6c757d;">${dog.registrationNumber}</small>
+                            </td>
+                            <td>${dog.handlerName || '-'}</td>
+                            <td>${aceDetailsHtml}</td>
+                            <td><div class="titles">${titlesHtml}</div></td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                        </tbody>
+                    </table>
+                `;
+            }
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        // Export current tab to Excel
+        function exportCurrentTab() {
+            const category = currentActiveTab;
+            
+            // Handle journal export
+            if (category === 'journal') {
+                const exportData = [
+                    ['C-WAGS Achievement Journal - All Titles & Aces'],
+                    ['Generated: ' + new Date().toLocaleDateString()],
+                    [],
+                    ['Date Earned', 'C-WAGS Number', 'Dog Name', 'Handler', 'Class', 'Judge', 'Achievement']
+                ];
+                
+                achievementJournal.forEach(achievement => {
+                    const dateStr = achievement.date.toLocaleDateString('en-US');
+                    exportData.push([
+                        dateStr,
+                        achievement.registrationNumber,
+                        achievement.callName,
+                        achievement.handlerName || '-',
+                        achievement.level,
+                        achievement.judge,
+                        achievement.achievement
+                    ]);
+                });
+                
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(exportData);
+                ws['!cols'] = [
+                    { wch: 12 }, { wch: 15 }, { wch: 20 }, { wch: 25 },
+                    { wch: 20 }, { wch: 25 }, { wch: 15 }
+                ];
+                XLSX.utils.book_append_sheet(wb, ws, 'Achievement Journal');
+                XLSX.writeFile(wb, `CWAGS_Achievement_Journal_${new Date().toISOString().split('T')[0]}.xlsx`);
+                return;
+            }
+            
+            // Handle distribution table export
+            if (category === 'distribution') {
+                const distribution = calculateDistribution();
+                
+                const exportData = [
+                    ['C-WAGS Stats - Title & Ace Distribution'],
+                    ['Generated: ' + new Date().toLocaleDateString()],
+                    [],
+                    ['Class', 'Title', 'Ace', 'Ace 2', 'Ace 3', 'Ace 4', 'Ace 5', 'Ace 6', 'Ace 7', 'Ace 8']
+                ];
+                
+                allLevels.forEach(level => {
+                    const dist = distribution[level];
+                    exportData.push([
+                        level,
+                        dist.title,
+                        dist.ace,
+                        dist.ace2,
+                        dist.ace3,
+                        dist.ace4,
+                        dist.ace5,
+                        dist.ace6,
+                        dist.ace7,
+                        dist.ace8
+                    ]);
+                });
+                
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(exportData);
+                ws['!cols'] = [{ wch: 20 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
+                XLSX.utils.book_append_sheet(wb, ws, 'Distribution');
+                XLSX.writeFile(wb, `CWAGS_Stats_Distribution_${new Date().toISOString().split('T')[0]}.xlsx`);
+                return;
+            }
+            
+            // Check if it's a master achievement
+            if (category === 'masterLevel4' || category === 'masterLevel5' || category === 'grandMaster') {
+                const qualifiers = getMasterQualifiers(category);
+                const categoryLabel = getCategoryLabel(category);
+                
+                const exportData = [
+                    ['C-WAGS Stats - ' + categoryLabel],
+                    ['Generated: ' + new Date().toLocaleDateString()],
+                    [],
+                    ['Dog Name', 'Registration', 'Handler', 'All Titles']
+                ];
+                
+                qualifiers.forEach(dog => {
+                    const titles = getTitlesDisplay(dog, 'overall');
+                    const titlesText = titles.map(t => t.text).join(', ');
+                    
+                    exportData.push([
+                        dog.callName,
+                        dog.registrationNumber,
+                        dog.handlerName || '-',
+                        titlesText
+                    ]);
+                });
+                
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(exportData);
+                ws['!cols'] = [{ wch: 20 }, { wch: 15 }, { wch: 25 }, { wch: 60 }];
+                XLSX.utils.book_append_sheet(wb, ws, categoryLabel.substring(0, 31));
+                XLSX.writeFile(wb, `CWAGS_Stats_${categoryLabel.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`);
+                return;
+            }
+            
+            const top10 = getTop10(category);
+            const categoryLabel = getCategoryLabel(category);
+            
+            const exportData = [
+                ['C-WAGS Stats - ' + categoryLabel],
+                ['Generated: ' + new Date().toLocaleDateString()],
+                [],
+                ['Rank', 'Dog Name', 'Registration', 'Handler', 'Score', 'Total Q\'s', 'Titles', 'Aces', 'All Titles']
+            ];
+            
+            top10.forEach((dog, index) => {
+                const titles = getTitlesDisplay(dog, category);
+                const titlesText = titles.map(t => t.text).join(', ') || 'None';
+                
+                exportData.push([
+                    index + 1,
+                    dog.callName,
+                    dog.registrationNumber,
+                    dog.handlerName || '-',
+                    dog.score,
+                    dog.displayQs,
+                    dog.displayTitles,
+                    dog.displayAces,
+                    titlesText
+                ]);
+            });
+            
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(exportData);
+            ws['!cols'] = [
+                { wch: 6 }, { wch: 20 }, { wch: 15 }, { wch: 25 },
+                { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 6 }, { wch: 50 }
+            ];
+            XLSX.utils.book_append_sheet(wb, ws, categoryLabel.substring(0, 31));
+            XLSX.writeFile(wb, `CWAGS_Stats_${categoryLabel.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        // Export all tabs to Excel
+        function exportAllTabs() {
+            const wb = XLSX.utils.book_new();
+            
+            // Add journal first
+            const journalData = [
+                ['Achievement Journal - All Titles & Aces'],
+                ['Generated: ' + new Date().toLocaleDateString()],
+                [],
+                ['Date Earned', 'C-WAGS Number', 'Dog Name', 'Handler', 'Class', 'Judge', 'Achievement']
+            ];
+            
+            achievementJournal.forEach(achievement => {
+                const dateStr = achievement.date.toLocaleDateString('en-US');
+                journalData.push([
+                    dateStr,
+                    achievement.registrationNumber,
+                    achievement.callName,
+                    achievement.handlerName || '-',
+                    achievement.level,
+                    achievement.judge,
+                    achievement.achievement
+                ]);
+            });
+            
+            const journalWs = XLSX.utils.aoa_to_sheet(journalData);
+            journalWs['!cols'] = [
+                { wch: 12 }, { wch: 15 }, { wch: 20 }, { wch: 25 },
+                { wch: 20 }, { wch: 25 }, { wch: 15 }
+            ];
+            XLSX.utils.book_append_sheet(wb, journalWs, 'Achievement Journal');
+            
+            const allCategories = [
+                'overall', 'distribution', 'scent', 'obedience', 'rally', 'games',
+                ...allLevels,
+                'masterLevel4', 'masterLevel5', 'grandMaster'
+            ];
+            
+            allCategories.forEach(category => {
+                if (category === 'distribution') {
+                    const distribution = calculateDistribution();
+                    const exportData = [
+                        ['Title & Ace Distribution'], [],
+                        ['Class', 'Title', 'Ace', 'Ace 2', 'Ace 3', 'Ace 4', 'Ace 5', 'Ace 6', 'Ace 7', 'Ace 8']
+                    ];
+                    allLevels.forEach(level => {
+                        const dist = distribution[level];
+                        exportData.push([level, dist.title, dist.ace, dist.ace2, dist.ace3, dist.ace4, dist.ace5, dist.ace6, dist.ace7, dist.ace8]);
+                    });
+                    const ws = XLSX.utils.aoa_to_sheet(exportData);
+                    ws['!cols'] = [{ wch: 20 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
+                    XLSX.utils.book_append_sheet(wb, ws, 'Distribution');
+                    return;
+                }
+                
+                if (category === 'masterLevel4' || category === 'masterLevel5' || category === 'grandMaster') {
+                    const qualifiers = getMasterQualifiers(category);
+                    if (qualifiers.length === 0) return;
+                    
+                    const categoryLabel = getCategoryLabel(category);
+                    const exportData = [
+                        [categoryLabel],
+                        [],
+                        ['Dog Name', 'Registration', 'Handler', 'All Titles']
+                    ];
+                    
+                    qualifiers.forEach(dog => {
+                        const titles = getTitlesDisplay(dog, 'overall');
+                        const titlesText = titles.map(t => t.text).join(', ');
+                        exportData.push([dog.callName, dog.registrationNumber, dog.handlerName || '-', titlesText]);
+                    });
+                    
+                    const ws = XLSX.utils.aoa_to_sheet(exportData);
+                    ws['!cols'] = [{ wch: 20 }, { wch: 15 }, { wch: 25 }, { wch: 60 }];
+                    XLSX.utils.book_append_sheet(wb, ws, categoryLabel.substring(0, 31));
+                    return;
+                }
+                
+                const top10 = getTop10(category);
+                if (top10.length === 0) return;
+                
+                const categoryLabel = getCategoryLabel(category);
+                const exportData = [
+                    [categoryLabel], [],
+                    ['Rank', 'Dog Name', 'Registration', 'Handler', 'Score', 'Total Q\'s', 'Titles', 'Aces', 'All Titles']
+                ];
+                
+                top10.forEach((dog, index) => {
+                    const titles = getTitlesDisplay(dog, category);
+                    const titlesText = titles.map(t => t.text).join(', ') || 'None';
+                    exportData.push([
+                        index + 1, dog.callName, dog.registrationNumber, dog.handlerName || '-',
+                        dog.score, dog.displayQs, dog.displayTitles, dog.displayAces, titlesText
+                    ]);
+                });
+                
+                const ws = XLSX.utils.aoa_to_sheet(exportData);
+                ws['!cols'] = [
+                    { wch: 6 }, { wch: 20 }, { wch: 15 }, { wch: 25 },
+                    { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 6 }, { wch: 50 }
+                ];
+                XLSX.utils.book_append_sheet(wb, ws, categoryLabel.substring(0, 31));
+            });
+            
+            XLSX.writeFile(wb, `CWAGS_Stats_All_Categories_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        function getCategoryLabel(category) {
+            if (category === 'overall') return 'Overall';
+            if (category === 'distribution') return 'Distribution';
+            if (category === 'journal') return 'Achievement Journal';
+            if (category === 'scent') return 'Scent';
+            if (category === 'obedience') return 'Obedience';
+            if (category === 'rally') return 'Rally';
+            if (category === 'games') return 'Games';
+            if (category === 'masterLevel4') return 'Master Scent Level 4';
+            if (category === 'masterLevel5') return 'Master Scent Level 5';
+            if (category === 'grandMaster') return 'Grand Master Scent';
+            return category;
+        }
+
+        // Render leaderboard
+        function renderLeaderboard(category, title) {
+            const top10 = getTop10(category);
+            
+            let explanationHtml = '';
+            if (category === 'scent') {
+                explanationHtml = `
+                    <div class="requirements-list" style="margin: 20px;">
+                        <h4>📊 Scent Scoring System:</h4>
+                        <ul>
+                            <li><strong>Level 1</strong> (Patrol 1, Ranger 1): Q's × 1 point</li>
+                            <li><strong>Level 2</strong> (Detective 2, Ranger 2): Q's × 2 points</li>
+                            <li><strong>Level 3</strong> (Investigator 3, Ranger 3, Dasher 3): Q's × 3 points</li>
+                            <li><strong>Level 4</strong> (Super Sleuth 4, Ranger 4, Dasher 4): Q's × 4 points</li>
+                            <li><strong>Level 5</strong> (Private Inv, Det Diversions, Ranger 5, Dasher 5): Q's × 5 points</li>
+                            <li><strong>Level 6</strong> (Dasher 6): Q's × 6 points</li>
+                        </ul>
+                        <p style="margin-top: 10px; font-style: italic;">Example: 10 Q's in Dasher 6 = 60 points, 10 Q's in Patrol 1 = 10 points</p>
+                    </div>
+                `;
+            } else if (category === 'games' || categories.games.includes(category)) {
+                explanationHtml = `
+                    <div class="requirements-list" style="margin: 20px;">
+                        <h4>🎮 Games Title Requirements:</h4>
+                        <ul>
+                            <li>✅ <strong>4 Q's</strong> (same as other categories)</li>
+                            <li>✅ <strong>2 different judges</strong> (same as other categories)</li>
+                            <li>✅ <strong>2 different game types:</strong> C, T, P, GB, or BJ</li>
+                        </ul>
+                        <p style="margin-top: 10px; font-style: italic;">Games titles require variety - dogs must qualify in at least 2 different game types!</p>
+                    </div>
+                `;
+            }
+            
+            let html = `
+                <div class="leaderboard">
+                    <div class="leaderboard-header">${title}</div>
+                    ${explanationHtml}
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Dog Name</th>
+                                <th>Handler</th>
+                                <th>Score</th>
+                                <th>Q's / Titles / Aces</th>
+                                <th>All Titles Earned</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            if (top10.length === 0) {
+                html += `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 30px; color: #6c757d;">
+                            No data available for this category
+                        </td>
+                    </tr>
+                `;
+            } else {
+                top10.forEach((dog, index) => {
+                    const rank = index + 1;
+                    const rankClass = `rank rank-${rank <= 3 ? rank : ''}`;
+                    
+                    const titles = getTitlesDisplay(dog, category);
+                    const titlesHtml = titles.length > 0 
+                        ? titles.map(t => `<span class="title-badge ${t.isAce ? 'ace' : ''}">${t.text}</span>`).join('')
+                        : '<span style="color: #6c757d;">No titles yet</span>';
+                    
+                    let scoreBreakdown = '';
+                    if (category === 'scent') {
+                        scoreBreakdown = '<div class="score-breakdown">(Level-weighted Q\'s)</div>';
+                    } else {
+                        scoreBreakdown = `<div class="score-breakdown">(${dog.displayQs}×1 + ${dog.displayTitles}×20 + ${dog.displayAces}×30)</div>`;
+                    }
+                    
+                    html += `
+                        <tr>
+                            <td class="${rankClass}">#${rank}</td>
+                            <td class="dog-name">${dog.callName}<br><small style="color: #6c757d;">${dog.registrationNumber}</small></td>
+                            <td>${dog.handlerName || '-'}</td>
+                            <td>
+                                <span class="qs-count">${dog.score}</span>
+                                ${scoreBreakdown}
+                            </td>
+                            <td>
+                                <strong>${dog.displayQs}</strong> Q's<br>
+                                <strong>${dog.displayTitles}</strong> Title${dog.displayTitles !== 1 ? 's' : ''}<br>
+                                <strong>${dog.displayAces}</strong> Ace${dog.displayAces !== 1 ? 's' : ''}
+                            </td>
+                            <td><div class="titles">${titlesHtml}</div></td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        // Render all leaderboards
+        function renderAllLeaderboards() {
+            const content = document.getElementById('content');
+            content.innerHTML = '';
+            content.classList.add('show');
+            
+            // Overall stats
+            const totalDogs = Object.keys(statsResults).length;
+            const totalQs = Object.values(statsResults).reduce((sum, dog) => sum + dog.totalQs, 0);
+            const totalTitles = Object.values(statsResults).reduce((sum, dog) => sum + dog.totalTitles, 0);
+            const totalAces = Object.values(statsResults).reduce((sum, dog) => sum + dog.totalAces, 0);
+            
+            const statsHtml = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Dogs</div>
+                        <div class="stat-number">${totalDogs}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Q's Earned</div>
+                        <div class="stat-number">${totalQs}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Titles Earned</div>
+                        <div class="stat-number">${totalTitles}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Aces Earned</div>
+                        <div class="stat-number">${totalAces}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Create tabs
+            const tabs = [
+                { id: 'overall', label: '🏆 Overall', isMaster: false, isJournal: false },
+                { id: 'journal', label: '📖 Achievement Journal', isMaster: false, isJournal: true },
+                { id: 'distribution', label: '📊 Distribution', isMaster: false, isJournal: false },
+                { id: 'scent', label: '👃 Scent', isMaster: false, isJournal: false },
+                { id: 'obedience', label: '🎯 Obedience', isMaster: false, isJournal: false },
+                { id: 'rally', label: '🏁 Rally', isMaster: false, isJournal: false },
+                { id: 'games', label: '🎮 Games', isMaster: false, isJournal: false },
+                { id: 'masterLevel4', label: '🥇 Master Scent Lvl 4', isMaster: true, isJournal: false },
+                { id: 'masterLevel5', label: '🥇 Master Scent Lvl 5', isMaster: true, isJournal: false },
+                { id: 'grandMaster', label: '👑 Grand Master Scent', isMaster: true, isJournal: false },
+                ...allLevels.map(level => ({ id: level, label: level, isMaster: false, isJournal: false }))
+            ];
+            
+            const navTabs = document.getElementById('navTabs');
+            navTabs.classList.add('show');
+            navTabs.innerHTML = tabs.map((tab, index) => {
+                let tabClass = 'nav-tab';
+                if (tab.isMaster) tabClass += ' master';
+                if (tab.isJournal) tabClass += ' journal';
+                if (index === 0) tabClass += ' active';
+                return `<button class="${tabClass}" onclick="switchTab('${tab.id}')">${tab.label}</button>`;
+            }).join('');
+            
+            // Create tab content
+            tabs.forEach((tab, index) => {
+                const tabContent = document.createElement('div');
+                tabContent.className = `tab-content ${index === 0 ? 'active' : ''}`;
+                tabContent.id = `tab-${tab.id}`;
+                
+                if (tab.id === 'overall') {
+                    tabContent.innerHTML = statsHtml + renderLeaderboard('overall', '🏆 Top 10 Dogs Overall');
+                } else if (tab.id === 'journal') {
+                    tabContent.innerHTML = renderAchievementJournal();
+                } else if (tab.id === 'distribution') {
+                    tabContent.innerHTML = renderDistributionTable();
+                } else if (tab.id === 'masterLevel4') {
+                    tabContent.innerHTML = renderMasterAchievements('masterLevel4', '🥇 Master Scent Level 4', [
+                        'Ace in Super Sleuth 4',
+                        'Ace in Ranger 4',
+                        'Ace in Dasher 4'
+                    ]);
+                } else if (tab.id === 'masterLevel5') {
+                    tabContent.innerHTML = renderMasterAchievements('masterLevel5', '🥇 Master Scent Level 5', [
+                        'Ace in Private Inv OR Det Diversions',
+                        'Ace in Ranger 5',
+                        'Ace in Dasher 5'
+                    ]);
+                } else if (tab.id === 'grandMaster') {
+                    tabContent.innerHTML = renderMasterAchievements('grandMaster', '👑 Grand Master Scent', [
+                        'Ace in ALL 14 scent classes:',
+                        'Patrol 1, Detective 2, Investigator 3, Super Sleuth 4, Private Inv, Det Diversions',
+                        'Ranger 1-5, Dasher 3-6'
+                    ]);
+                } else if (categories[tab.id]) {
+                    tabContent.innerHTML = renderLeaderboard(tab.id, `Top 10 in ${tab.label}`);
+                } else {
+                    tabContent.innerHTML = renderLeaderboard(tab.id, `Top 10 in ${tab.label}`);
+                }
+                
+                content.appendChild(tabContent);
+            });
+        }
+
+        // Switch tabs
+        function switchTab(tabId) {
+            currentActiveTab = tabId;
+            
+            // Update tab buttons
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        }
+        
+        window.switchTab = switchTab;
+        window.processFiles = processFiles;
+        window.exportCurrentTab = exportCurrentTab;
+        window.exportAllTabs = exportAllTabs;
+        window.showDogList = showDogList;
+        window.closeModal = closeModal;
+        window.exportModalToCSV = exportModalToCSV;
+    </script>
+</body>
+</html>

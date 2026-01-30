@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C-WAGS Stats Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .header {
+            background: linear-gradient(90deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .file-upload-section {
+            padding: 40px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .file-upload-container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .file-upload-container h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .file-input-group {
+            background: white;
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .file-input-group:hover {
+            border-color: #764ba2;
+            background: #f8f9fa;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .file-input-group.dragover {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .file-input-group.loaded {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .file-input-group label {
+            display: block;
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .file-input-group input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-prompt {
+            color: #6c757d;
+            font-size: 0.95rem;
+            margin-top: 10px;
+        }
+
+        .file-upload-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .file-status {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #6c757d;
+            pointer-events: none;
+        }
+
+        .file-status.loaded {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .process-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .process-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .process-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status-message {
+            font-size: 1.1rem;
+            color: #495057;
+        }
+
+        .loading {
+            color: #17a2b8;
+            font-weight: 600;
+        }
+
+        .success {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .error {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .export-section {
+            text-align: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            display: none;
+        }
+
+        .export-section.show {
+            display: block;
+        }
+
+        .export-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 0 10px;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(40, 167, 69, 0.3);
+        }
+
+        .export-all-btn {
+            background: linear-gradient(45deg, #6f42c1, #8e44ad);
+        }
+
+        .export-all-btn:hover {
+            box-shadow: 0 8px 16px rgba(111, 66, 193, 0.3);
+        }
+
+        .nav-tabs {
+            display: none;
+            flex-wrap: wrap;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            overflow-x: auto;
+        }
+
+        .nav-tabs.show {
+            display: flex;
+        }
+
+        .nav-tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .nav-tab:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .nav-tab.journal {
+            background: linear-gradient(135deg, rgba(102, 193, 71, 0.2), rgba(40, 167, 69, 0.2));
+            color: #28a745;
+            font-weight: 700;
+        }
+
+        .nav-tab.journal:hover {
+            background: linear-gradient(135deg, rgba(102, 193, 71, 0.3), rgba(40, 167, 69, 0.3));
+        }
+
+        .nav-tab.journal.active {
+            background: linear-gradient(135deg, #66c147, #28a745);
+            color: white;
+            border-bottom: 3px solid #28a745;
+        }
+
+        .content {
+            padding: 30px;
+            display: none;
+        }
+
+        .content.show {
+            display: block;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .leaderboard {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .leaderboard-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .leaderboard-header.journal {
+            background: linear-gradient(45deg, #66c147, #28a745);
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .leaderboard-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .leaderboard-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .dog-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .title-badge {
+            background: #28a745;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .title-badge.ace {
+            background: #6f42c1;
+        }
+
+        .title-badge.ace2 {
+            background: #dc3545;
+        }
+
+        .title-badge.ace3 {
+            background: #fd7e14;
+        }
+
+        .title-badge.ace4 {
+            background: #ffc107;
+            color: #1f2937;
+        }
+
+        .title-badge.ace5plus {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #1f2937;
+        }
+
+        .distribution-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .distribution-table th,
+        .distribution-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        .distribution-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .distribution-table .category-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .distribution-table .class-name {
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .distribution-table .ace-header {
+            background: #6f42c1;
+            color: white;
+        }
+
+        .distribution-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .distribution-table tr:hover {
+            background: #e7f3ff;
+        }
+
+        .distribution-table .clickable-cell {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .distribution-table .clickable-cell:hover {
+            background: #667eea !important;
+            color: white;
+            transform: scale(1.1);
+            font-weight: bold;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .modal-close {
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #ddd;
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            text-align: right;
+        }
+
+        .csv-export-btn {
+            background: linear-gradient(45deg, #17a2b8, #138496);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .csv-export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(23, 162, 184, 0.3);
+        }
+
+        .dog-list-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .dog-list-table th {
+            background: #f8f9fa;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .dog-list-table td {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .dog-list-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .instructions {
+            background: #e7f3ff;
+            border: 2px solid #b8daff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #004085;
+        }
+
+        .instructions h4 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 C-WAGS Stats Checker</h1>
+            <p>Distribution Table & Achievement Journal</p>
+        </div>
+
+        <div class="file-upload-section" id="uploadSection">
+            <div class="file-upload-container">
+                <div class="instructions">
+                    <h4>📋 Instructions:</h4>
+                    <ol>
+                        <li><strong>Click on the boxes below</strong> to select your files (or drag & drop them!)</li>
+                        <li>Select your Excel files from your computer</li>
+                        <li>Wait for both files to show "✅ loaded"</li>
+                        <li>Click "Process Stats" button</li>
+                    </ol>
+                </div>
+
+                <div class="file-input-group" id="trialingFileGroup" onclick="document.getElementById('trialingFile').click()">
+                    <div class="file-upload-icon">📊</div>
+                    <label>Data for Tracker web.xlsx</label>
+                    <input type="file" id="trialingFile" accept=".xlsx,.xls">
+                    <div class="file-upload-prompt">Click here or drag & drop file</div>
+                    <div class="file-status" id="trialingStatus">No file selected</div>
+                </div>
+
+                <div class="file-input-group" id="dogInfoFileGroup" onclick="document.getElementById('dogInfoFile').click()">
+                    <div class="file-upload-icon">🐕</div>
+                    <label>DogInfo.xlsx</label>
+                    <input type="file" id="dogInfoFile" accept=".xlsx,.xls">
+                    <div class="file-upload-prompt">Click here or drag & drop file</div>
+                    <div class="file-status" id="dogInfoStatus">No file selected</div>
+                </div>
+
+                <button class="process-btn" id="processBtn" disabled onclick="processFiles()">
+                    Process Stats
+                </button>
+            </div>
+        </div>
+
+        <div class="status" id="statusSection">
+            <div class="status-message" id="statusMessage"></div>
+        </div>
+
+        <div class="export-section" id="exportSection">
+            <button class="export-btn" onclick="exportCurrentTab()">
+                📥 Export Current Tab to Excel
+            </button>
+            <button class="export-btn export-all-btn" onclick="exportAllTabs()">
+                📥 Export Both Tabs to Excel
+            </button>
+        </div>
+
+        <div class="nav-tabs" id="navTabs">
+            <!-- Tabs will be added here dynamically -->
+        </div>
+
+        <div class="content" id="content">
+            <!-- Content will be added here dynamically -->
+        </div>
+    </div>
+
+    <!-- Modal for showing dog lists -->
+    <div id="dogListModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle"></h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dog list will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button class="csv-export-btn" onclick="exportModalToCSV()">
+                    📥 Export to CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Global data storage
+        let trialingData = [];
+        let dogInfoData = {};
+        let statsResults = {};
+        let achievementJournal = [];
+        let trialingFileData = null;
+        let dogInfoFileData = null;
+        let currentActiveTab = 'distribution';
+
+        // Level categories
+        const categories = {
+            scent: ["Patrol 1", "Detective 2", "Investigator 3", "Super Sleuth 4", "Private Inv", "Det Diversions",
+                    "Ranger 1", "Ranger 2", "Ranger 3", "Ranger 4", "Ranger 5",
+                    "Dasher 3", "Dasher 4", "Dasher 5", "Dasher 6"],
+            obedience: ["Obedience 1", "Obedience 2", "Obedience 3", "Obedience 4", "Obedience 5"],
+            rally: ["Starter", "Advanced", "Pro", "ARF", "Zoom 1", "Zoom 1.5", "Zoom 2"],
+            games: ["Games 1", "Games 2", "Games 3", "Games 4"]
+        };
+
+        const allLevels = [...categories.scent, ...categories.obedience, ...categories.rally, ...categories.games];
+
+        const titleAbbreviations = {
+            "Patrol 1": "CW-SP", "Detective 2": "CW-SD", "Investigator 3": "CW-SI",
+            "Super Sleuth 4": "CW-SS", "Private Inv": "CW-SPI", "Det Diversions": "CW-SDD",
+            "Ranger 1": "CW-ScR1", "Ranger 2": "CW-ScR2", "Ranger 3": "CW-ScR3",
+            "Ranger 4": "CW-ScR4", "Ranger 5": "CW-ScR5",
+            "Dasher 3": "CW-SD3", "Dasher 4": "CW-SD4", "Dasher 5": "CW-SD5", "Dasher 6": "CW-SD6",
+            "Obedience 1": "CW-Ob1", "Obedience 2": "CW-Ob2", "Obedience 3": "CW-Ob3",
+            "Obedience 4": "CW-Ob4", "Obedience 5": "CW-Ob5",
+            "Starter": "CW-SR", "Advanced": "CW-AR", "Pro": "CW-PR", "ARF": "CW-ARF",
+            "Zoom 1": "CW-ZR1", "Zoom 1.5": "CW-ZR1.5", "Zoom 2": "CW-ZR2",
+            "Games 1": "CW-G1", "Games 2": "CW-G2", "Games 3": "CW-G3", "Games 4": "CW-G4"
+        };
+
+        // File input handlers
+        document.getElementById('trialingFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    trialingFileData = e.target.result;
+                    document.getElementById('trialingStatus').textContent = '✅ ' + file.name + ' loaded';
+                    document.getElementById('trialingStatus').className = 'file-status loaded';
+                    document.getElementById('trialingFileGroup').classList.add('loaded');
+                    checkFilesReady();
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+
+        document.getElementById('dogInfoFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    dogInfoFileData = e.target.result;
+                    document.getElementById('dogInfoStatus').textContent = '✅ ' + file.name + ' loaded';
+                    document.getElementById('dogInfoStatus').className = 'file-status loaded';
+                    document.getElementById('dogInfoFileGroup').classList.add('loaded');
+                    checkFilesReady();
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+
+        // Drag and drop support
+        function setupDragAndDrop(groupId, inputId) {
+            const group = document.getElementById(groupId);
+            const input = document.getElementById(inputId);
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                group.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                group.addEventListener(eventName, () => {
+                    group.classList.add('dragover');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                group.addEventListener(eventName, () => {
+                    group.classList.remove('dragover');
+                });
+            });
+
+            group.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    input.files = files;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        }
+
+        setupDragAndDrop('trialingFileGroup', 'trialingFile');
+        setupDragAndDrop('dogInfoFileGroup', 'dogInfoFile');
+
+        function checkFilesReady() {
+            const btn = document.getElementById('processBtn');
+            if (trialingFileData && dogInfoFileData) {
+                btn.disabled = false;
+                btn.textContent = '🚀 Process Stats';
+            }
+        }
+
+        // Process files
+        function processFiles() {
+            showStatus('loading', '🔄 Processing data...');
+            
+            setTimeout(() => {
+                try {
+                    // Load DogInfo
+                    const dogInfoWorkbook = XLSX.read(new Uint8Array(dogInfoFileData), { cellDates: true });
+                    const dogInfoSheet = dogInfoWorkbook.Sheets[dogInfoWorkbook.SheetNames[0]];
+                    const dogInfoJson = XLSX.utils.sheet_to_json(dogInfoSheet, {header: 1});
+                    
+                    dogInfoJson.slice(1).forEach(row => {
+                        if (row && row[0]) {
+                            const regNumber = row[0].toString().trim();
+                            dogInfoData[regNumber] = {
+                                callName: row[1] ? row[1].toString().trim() : '',
+                                registeredName: row[2] ? row[2].toString().trim() : '',
+                                handlerName: row[3] ? row[3].toString().trim() : ''
+                            };
+                        }
+                    });
+                    
+                    console.log('✅ DogInfo loaded:', Object.keys(dogInfoData).length, 'dogs');
+                    
+                    // Load trialing data
+                    const trialingWorkbook = XLSX.read(trialingFileData, {type: 'array', cellDates: true});
+                    const dataSheet = trialingWorkbook.Sheets['Data'] || trialingWorkbook.Sheets[trialingWorkbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(dataSheet, {header: 1, dateNF: 'yyyy-mm-dd'});
+                    
+                    trialingData = jsonData.slice(1).map(row => {
+                        let processedDate = row[2];
+                        
+                        if (typeof processedDate === 'number') {
+                            processedDate = XLSX.SSF.parse_date_code(processedDate);
+                            processedDate = new Date(processedDate.y, processedDate.m - 1, processedDate.d);
+                        } else if (typeof processedDate === 'string') {
+                            processedDate = new Date(processedDate);
+                        } else if (processedDate instanceof Date) {
+                            processedDate = processedDate;
+                        } else {
+                            processedDate = null;
+                        }
+                        
+                        return {
+                            registrationNumber: row[0],
+                            callName: row[1],
+                            date: processedDate,
+                            level: row[3],
+                            results: row[4],
+                            judge: row[5],
+                            Qs: parseFloat(row[6]) || 0
+                        };
+                    }).filter(record => record.registrationNumber && record.level);
+                    
+                    console.log('✅ Trialing data loaded:', trialingData.length, 'records');
+                    
+                    // Process stats
+                    processAllDogs();
+                    
+                    // Hide upload section and show results
+                    document.getElementById('uploadSection').style.display = 'none';
+                    document.getElementById('exportSection').classList.add('show');
+                    showStatus('success', '✅ Processing complete! Showing stats for ' + Object.keys(statsResults).length + ' dogs');
+                    
+                    // Render results
+                    renderAllContent();
+                    
+                } catch (error) {
+                    console.error('Error processing files:', error);
+                    showStatus('error', '❌ Error processing files: ' + error.message);
+                }
+            }, 100);
+        }
+
+        function showStatus(type, message) {
+            const statusSection = document.getElementById('statusSection');
+            const statusMessage = document.getElementById('statusMessage');
+            statusSection.classList.add('show');
+            statusMessage.innerHTML = `<span class="${type}">${message}</span>`;
+        }
+
+        // Calculate titles for a dog at a specific level
+        function calculateTitles(records, level) {
+            const sortedRecords = records
+                .filter(r => r.Qs > 0 && r.date instanceof Date && !isNaN(r.date))
+                .sort((a, b) => a.date - b.date);
+            
+            let cumulativeQs = 0;
+            let judges = new Set();
+            let gameTypes = new Set();
+            let titleQs = 0;
+            let hasTitle = false;
+            let titleDate = null;
+            let titleJudge = null;
+            
+            // Check if this is a Games level
+            const isGamesLevel = categories.games.includes(level);
+            
+            for (const record of sortedRecords) {
+                const prevQs = cumulativeQs;
+                const prevJudgeCount = judges.size;
+                const prevGameTypeCount = gameTypes.size;
+                
+                cumulativeQs += record.Qs;
+                if (record.judge) judges.add(record.judge);
+                
+                // Track game types for Games levels
+                if (isGamesLevel && record.results) {
+                    const result = record.results.toString().trim().toUpperCase();
+                    if (['C', 'T', 'P', 'GB', 'BJ'].includes(result)) {
+                        gameTypes.add(result);
+                    }
+                }
+                
+                // Determine if title is earned
+                let nowHasTitle = false;
+                if (isGamesLevel) {
+                    // Games levels require: 4+ Q's, 2+ judges, 2+ game types
+                    nowHasTitle = cumulativeQs >= 4 && judges.size >= 2 && gameTypes.size >= 2;
+                } else {
+                    // Other levels require: 4+ Q's, 2+ judges
+                    nowHasTitle = cumulativeQs >= 4 && judges.size >= 2;
+                }
+                
+                const previouslyHadTitle = isGamesLevel 
+                    ? (prevQs >= 4 && prevJudgeCount >= 2 && prevGameTypeCount >= 2)
+                    : (prevQs >= 4 && prevJudgeCount >= 2);
+                
+                if (nowHasTitle && !previouslyHadTitle) {
+                    hasTitle = true;
+                    titleDate = record.date;
+                    titleJudge = record.judge;
+                    
+                    // Calculate how many Q's contributed to earning the title
+                    let QsTowardTitle = record.Qs;
+                    
+                    if (isGamesLevel) {
+                        // For Games: check which requirement was last to be satisfied
+                        if (prevQs >= 4 && prevJudgeCount >= 2 && prevGameTypeCount < 2) {
+                            // Was waiting for 2nd game type - only 1 Q counted
+                            QsTowardTitle = 1;
+                        } else if (prevQs >= 4 && prevJudgeCount < 2) {
+                            // Was waiting for 2nd judge - only 1 Q counted
+                            QsTowardTitle = 1;
+                        } else if (prevJudgeCount >= 2 && prevGameTypeCount >= 2 && prevQs < 4) {
+                            // Was waiting for Q count
+                            QsTowardTitle = 4 - prevQs;
+                        } else if (prevQs < 4 && prevJudgeCount < 2) {
+                            QsTowardTitle = Math.min(record.Qs, 4 - prevQs);
+                        }
+                    } else {
+                        // For non-Games levels
+                        if (prevQs >= 4 && prevJudgeCount < 2) {
+                            QsTowardTitle = 1;
+                        } else if (prevJudgeCount >= 2 && prevQs < 4) {
+                            QsTowardTitle = 4 - prevQs;
+                        } else if (prevQs < 4 && prevJudgeCount < 2) {
+                            QsTowardTitle = Math.min(record.Qs, 4 - prevQs);
+                        }
+                    }
+                    
+                    titleQs = prevQs + QsTowardTitle;
+                    break;
+                }
+            }
+            
+            const totalQs = sortedRecords.reduce((sum, r) => sum + r.Qs, 0);
+            
+            if (hasTitle) {
+                const aceQs = Math.max(0, totalQs - titleQs);
+                const aceCount = Math.floor(aceQs / 10);
+                
+                // Track individual aces in the journal
+                const aces = [];
+                for (let i = 1; i <= aceCount; i++) {
+                    const aceThreshold = titleQs + (i * 10);
+                    let aceDate = null;
+                    let aceJudge = null;
+                    let runningTotal = 0;
+                    
+                    for (const record of sortedRecords) {
+                        runningTotal += record.Qs;
+                        if (runningTotal >= aceThreshold && !aceDate) {
+                            aceDate = record.date;
+                            aceJudge = record.judge;
+                            break;
+                        }
+                    }
+                    
+                    if (aceDate) {
+                        aces.push({ aceNumber: i, date: aceDate, judge: aceJudge });
+                    }
+                }
+                
+                return { hasTitle: true, aceCount, totalQs, titleQs, titleDate, titleJudge, aces };
+            }
+            
+            return { hasTitle: false, aceCount: 0, totalQs, titleQs: 0, titleDate: null, titleJudge: null, aces: [] };
+        }
+
+        // Process all dogs and calculate stats
+        function processAllDogs() {
+            console.log('🔄 Processing all dogs...');
+            
+            const dogStats = {};
+            achievementJournal = [];
+            
+            // Group records by dog
+            trialingData.forEach(record => {
+                const regNumber = record.registrationNumber;
+                
+                if (!dogStats[regNumber]) {
+                    dogStats[regNumber] = {
+                        registrationNumber: regNumber,
+                        callName: dogInfoData[regNumber]?.callName || record.callName || 'Unknown',
+                        handlerName: dogInfoData[regNumber]?.handlerName || '',
+                        levels: {}
+                    };
+                }
+                
+                if (!dogStats[regNumber].levels[record.level]) {
+                    dogStats[regNumber].levels[record.level] = [];
+                }
+                
+                dogStats[regNumber].levels[record.level].push(record);
+            });
+            
+            // Calculate stats for each dog
+            Object.keys(dogStats).forEach(regNumber => {
+                const dog = dogStats[regNumber];
+                
+                Object.keys(dog.levels).forEach(level => {
+                    const records = dog.levels[level];
+                    const titleInfo = calculateTitles(records, level);
+                    
+                    dog.levels[level] = {
+                        records,
+                        ...titleInfo
+                    };
+                    
+                    // Add to achievement journal
+                    if (titleInfo.hasTitle && titleInfo.titleDate) {
+                        achievementJournal.push({
+                            date: titleInfo.titleDate,
+                            registrationNumber: regNumber,
+                            callName: dog.callName,
+                            handlerName: dog.handlerName,
+                            level: level,
+                            judge: titleInfo.titleJudge || '-',
+                            achievementType: 'title'
+                        });
+                    }
+                    
+                    // Add aces to journal
+                    titleInfo.aces.forEach(ace => {
+                        achievementJournal.push({
+                            date: ace.date,
+                            registrationNumber: regNumber,
+                            callName: dog.callName,
+                            handlerName: dog.handlerName,
+                            level: level,
+                            judge: ace.judge || '-',
+                            achievementType: `ace${ace.aceNumber > 1 ? ace.aceNumber : ''}`
+                        });
+                    });
+                });
+            });
+            
+            // Sort chronologically (oldest first)
+            achievementJournal.sort((a, b) => a.date - b.date);
+            
+            statsResults = dogStats;
+            console.log('✅ Processed', Object.keys(dogStats).length, 'dogs');
+            console.log('✅ Achievement journal:', achievementJournal.length, 'achievements');
+        }
+
+        // Calculate distribution statistics
+        function calculateDistribution() {
+            const distribution = {};
+            
+            allLevels.forEach(level => {
+                distribution[level] = {
+                    title: 0,
+                    ace: 0,
+                    ace2: 0,
+                    ace3: 0,
+                    ace4: 0,
+                    ace5: 0,
+                    ace6: 0,
+                    ace7: 0,
+                    ace8: 0
+                };
+            });
+            
+            Object.values(statsResults).forEach(dog => {
+                Object.keys(dog.levels).forEach(level => {
+                    const levelData = dog.levels[level];
+                    if (levelData.hasTitle) {
+                        distribution[level].title += 1;
+                        
+                        const aceCount = levelData.aceCount;
+                        if (aceCount >= 1) distribution[level].ace += 1;
+                        if (aceCount >= 2) distribution[level].ace2 += 1;
+                        if (aceCount >= 3) distribution[level].ace3 += 1;
+                        if (aceCount >= 4) distribution[level].ace4 += 1;
+                        if (aceCount >= 5) distribution[level].ace5 += 1;
+                        if (aceCount >= 6) distribution[level].ace6 += 1;
+                        if (aceCount >= 7) distribution[level].ace7 += 1;
+                        if (aceCount >= 8) distribution[level].ace8 += 1;
+                    }
+                });
+            });
+            
+            return distribution;
+        }
+
+        // Get dogs who have achieved a specific level
+        function getDogsWithAchievement(level, achievementType) {
+            const dogs = Object.values(statsResults);
+            const qualifiers = [];
+            
+            dogs.forEach(dog => {
+                const levelData = dog.levels[level];
+                if (!levelData) return;
+                
+                let qualifies = false;
+                
+                if (achievementType === 'title' && levelData.hasTitle) {
+                    qualifies = true;
+                } else if (achievementType === 'ace' && levelData.hasTitle && levelData.aceCount >= 1) {
+                    qualifies = true;
+                } else if (achievementType === 'ace2' && levelData.hasTitle && levelData.aceCount >= 2) {
+                    qualifies = true;
+                } else if (achievementType === 'ace3' && levelData.hasTitle && levelData.aceCount >= 3) {
+                    qualifies = true;
+                } else if (achievementType === 'ace4' && levelData.hasTitle && levelData.aceCount >= 4) {
+                    qualifies = true;
+                } else if (achievementType === 'ace5' && levelData.hasTitle && levelData.aceCount >= 5) {
+                    qualifies = true;
+                } else if (achievementType === 'ace6' && levelData.hasTitle && levelData.aceCount >= 6) {
+                    qualifies = true;
+                } else if (achievementType === 'ace7' && levelData.hasTitle && levelData.aceCount >= 7) {
+                    qualifies = true;
+                } else if (achievementType === 'ace8' && levelData.hasTitle && levelData.aceCount >= 8) {
+                    qualifies = true;
+                }
+                
+                if (qualifies) {
+                    qualifiers.push({
+                        callName: dog.callName,
+                        registrationNumber: dog.registrationNumber,
+                        handlerName: dog.handlerName,
+                        totalQs: levelData.totalQs,
+                        aceCount: levelData.aceCount
+                    });
+                }
+            });
+            
+            // Sort by ace count (descending), then by total Q's (descending)
+            return qualifiers.sort((a, b) => {
+                if (b.aceCount !== a.aceCount) return b.aceCount - a.aceCount;
+                return b.totalQs - a.totalQs;
+            });
+        }
+
+        // Show modal with dog list
+        let currentModalData = null;
+        
+        function showDogList(level, achievementType) {
+            const dogs = getDogsWithAchievement(level, achievementType);
+            currentModalData = { level, achievementType, dogs };
+            
+            const achievementLabels = {
+                'title': 'Title',
+                'ace': 'Ace (1+)',
+                'ace2': 'Ace 2+',
+                'ace3': 'Ace 3+',
+                'ace4': 'Ace 4+',
+                'ace5': 'Ace 5+',
+                'ace6': 'Ace 6+',
+                'ace7': 'Ace 7+',
+                'ace8': 'Ace 8+'
+            };
+            
+            document.getElementById('modalTitle').textContent = 
+                `${level} - ${achievementLabels[achievementType]} (${dogs.length} dogs)`;
+            
+            let html = `
+                <table class="dog-list-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Dog Name</th>
+                            <th>C-WAGS Number</th>
+                            <th>Handler</th>
+                            <th>Total Q's</th>
+                            <th>Ace Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            dogs.forEach((dog, index) => {
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td><strong>${dog.callName}</strong></td>
+                        <td>${dog.registrationNumber}</td>
+                        <td>${dog.handlerName || '-'}</td>
+                        <td>${dog.totalQs}</td>
+                        <td>${dog.aceCount}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('dogListModal').classList.add('show');
+        }
+        
+        function closeModal() {
+            document.getElementById('dogListModal').classList.remove('show');
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('dogListModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+        
+        // Export modal data to CSV
+        function exportModalToCSV() {
+            if (!currentModalData) return;
+            
+            const { level, achievementType, dogs } = currentModalData;
+            const achievementLabels = {
+                'title': 'Title',
+                'ace': 'Ace_1+',
+                'ace2': 'Ace_2+',
+                'ace3': 'Ace_3+',
+                'ace4': 'Ace_4+',
+                'ace5': 'Ace_5+',
+                'ace6': 'Ace_6+',
+                'ace7': 'Ace_7+',
+                'ace8': 'Ace_8+'
+            };
+            
+            // Create CSV content
+            let csv = 'Dog Name,C-WAGS Number,Handler,Total Q\'s,Ace Count\n';
+            
+            dogs.forEach(dog => {
+                csv += `"${dog.callName}","${dog.registrationNumber}","${dog.handlerName || '-'}",${dog.totalQs},${dog.aceCount}\n`;
+            });
+            
+            // Download CSV
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `CWAGS_${level.replace(/\s+/g, '_')}_${achievementLabels[achievementType]}_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Render distribution table
+        function renderDistributionTable() {
+            const distribution = calculateDistribution();
+            
+            let html = `
+                <div class="leaderboard">
+                    <div class="leaderboard-header">📊 Title & Ace Distribution by Class</div>
+                    <div style="padding: 20px; overflow-x: auto;">
+                        <p style="color: #6c757d; margin-bottom: 15px; font-style: italic;">
+                            💡 Click on any number to see all dogs who have achieved that level
+                        </p>
+                        <table class="distribution-table">
+                            <thead>
+                                <tr>
+                                    <th>Class</th>
+                                    <th>Title</th>
+                                    <th class="ace-header">Ace</th>
+                                    <th class="ace-header">Ace 2</th>
+                                    <th class="ace-header">Ace 3</th>
+                                    <th class="ace-header">Ace 4</th>
+                                    <th class="ace-header">Ace 5</th>
+                                    <th class="ace-header">Ace 6</th>
+                                    <th class="ace-header">Ace 7</th>
+                                    <th class="ace-header">Ace 8</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            // Render by category
+            const categoryGroups = [
+                { name: 'Scent', levels: categories.scent },
+                { name: 'Obedience', levels: categories.obedience },
+                { name: 'Rally', levels: categories.rally },
+                { name: 'Games', levels: categories.games }
+            ];
+            
+            categoryGroups.forEach(group => {
+                html += `
+                    <tr>
+                        <td colspan="10" class="category-header">
+                            ${group.name}
+                        </td>
+                    </tr>
+                `;
+                
+                group.levels.forEach(level => {
+                    const dist = distribution[level];
+                    html += `
+                        <tr>
+                            <td class="class-name">${level}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'title')">${dist.title}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'ace')">${dist.ace}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'ace2')">${dist.ace2}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'ace3')">${dist.ace3}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'ace4')">${dist.ace4}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'ace5')">${dist.ace5}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'ace6')">${dist.ace6}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'ace7')">${dist.ace7}</td>
+                            <td class="clickable-cell" onclick="showDogList('${level}', 'ace8')">${dist.ace8}</td>
+                        </tr>
+                    `;
+                });
+            });
+            
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        // Render achievement journal
+        function renderAchievementJournal() {
+            let html = `
+                <div class="leaderboard">
+                    <div class="leaderboard-header journal">📖 Achievement Journal - All Titles & Aces</div>
+                    <div style="padding: 20px;">
+                        <p style="color: #6c757d; margin-bottom: 20px; font-style: italic;">
+                            📅 Complete chronological record of all titles and aces earned - oldest to newest (showing ${achievementJournal.length} achievements)
+                        </p>
+                        
+                        <table class="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Date Earned</th>
+                                    <th>C-WAGS #</th>
+                                    <th>Dog Name</th>
+                                    <th>Handler</th>
+                                    <th>Class</th>
+                                    <th>Judge</th>
+                                    <th>Achievement</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            achievementJournal.forEach(achievement => {
+                const dateStr = achievement.date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                
+                let badgeClass = 'title-badge';
+                let achievementText = '';
+                
+                if (achievement.achievementType === 'title') {
+                    achievementText = 'Title';
+                } else if (achievement.achievementType === 'ace') {
+                    badgeClass += ' ace';
+                    achievementText = 'Ace';
+                } else if (achievement.achievementType === 'ace2') {
+                    badgeClass += ' ace2';
+                    achievementText = 'Ace x2';
+                } else if (achievement.achievementType === 'ace3') {
+                    badgeClass += ' ace3';
+                    achievementText = 'Ace x3';
+                } else if (achievement.achievementType === 'ace4') {
+                    badgeClass += ' ace4';
+                    achievementText = 'Ace x4';
+                } else {
+                    // ace5+
+                    badgeClass += ' ace5plus';
+                    const aceNum = parseInt(achievement.achievementType.replace('ace', ''));
+                    achievementText = `Ace x${aceNum}`;
+                }
+                
+                html += `
+                    <tr>
+                        <td>${dateStr}</td>
+                        <td>${achievement.registrationNumber}</td>
+                        <td class="dog-name">${achievement.callName}</td>
+                        <td>${achievement.handlerName || '-'}</td>
+                        <td><strong>${achievement.level}</strong></td>
+                        <td>${achievement.judge}</td>
+                        <td><span class="${badgeClass}">${achievementText}</span></td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        // Export current tab to Excel
+        function exportCurrentTab() {
+            const category = currentActiveTab;
+            
+            if (category === 'distribution') {
+                const distribution = calculateDistribution();
+                
+                const exportData = [
+                    ['C-WAGS Stats - Title & Ace Distribution'],
+                    ['Generated: ' + new Date().toLocaleDateString()],
+                    [],
+                    ['Class', 'Title', 'Ace', 'Ace 2', 'Ace 3', 'Ace 4', 'Ace 5', 'Ace 6', 'Ace 7', 'Ace 8']
+                ];
+                
+                allLevels.forEach(level => {
+                    const dist = distribution[level];
+                    exportData.push([
+                        level,
+                        dist.title,
+                        dist.ace,
+                        dist.ace2,
+                        dist.ace3,
+                        dist.ace4,
+                        dist.ace5,
+                        dist.ace6,
+                        dist.ace7,
+                        dist.ace8
+                    ]);
+                });
+                
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(exportData);
+                ws['!cols'] = [{ wch: 20 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
+                XLSX.utils.book_append_sheet(wb, ws, 'Distribution');
+                XLSX.writeFile(wb, `CWAGS_Stats_Distribution_${new Date().toISOString().split('T')[0]}.xlsx`);
+            } else if (category === 'journal') {
+                const exportData = [
+                    ['C-WAGS Stats - Achievement Journal'],
+                    ['Generated: ' + new Date().toLocaleDateString()],
+                    [],
+                    ['Date Earned', 'C-WAGS #', 'Dog Name', 'Handler', 'Class', 'Judge', 'Achievement']
+                ];
+                
+                achievementJournal.forEach(achievement => {
+                    const dateStr = achievement.date.toLocaleDateString('en-US');
+                    let achievementText = '';
+                    
+                    if (achievement.achievementType === 'title') {
+                        achievementText = 'Title';
+                    } else if (achievement.achievementType === 'ace') {
+                        achievementText = 'Ace';
+                    } else {
+                        const aceNum = parseInt(achievement.achievementType.replace('ace', ''));
+                        achievementText = `Ace x${aceNum}`;
+                    }
+                    
+                    exportData.push([
+                        dateStr,
+                        achievement.registrationNumber,
+                        achievement.callName,
+                        achievement.handlerName || '-',
+                        achievement.level,
+                        achievement.judge,
+                        achievementText
+                    ]);
+                });
+                
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(exportData);
+                ws['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 20 }, { wch: 25 }, { wch: 18 }, { wch: 25 }, { wch: 12 }];
+                XLSX.utils.book_append_sheet(wb, ws, 'Achievement Journal');
+                XLSX.writeFile(wb, `CWAGS_Stats_Achievement_Journal_${new Date().toISOString().split('T')[0]}.xlsx`);
+            }
+        }
+
+        // Export all tabs to Excel
+        function exportAllTabs() {
+            const wb = XLSX.utils.book_new();
+            
+            // Distribution
+            const distribution = calculateDistribution();
+            const distData = [
+                ['Title & Ace Distribution'], [],
+                ['Class', 'Title', 'Ace', 'Ace 2', 'Ace 3', 'Ace 4', 'Ace 5', 'Ace 6', 'Ace 7', 'Ace 8']
+            ];
+            allLevels.forEach(level => {
+                const dist = distribution[level];
+                distData.push([level, dist.title, dist.ace, dist.ace2, dist.ace3, dist.ace4, dist.ace5, dist.ace6, dist.ace7, dist.ace8]);
+            });
+            const distWs = XLSX.utils.aoa_to_sheet(distData);
+            distWs['!cols'] = [{ wch: 20 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
+            XLSX.utils.book_append_sheet(wb, distWs, 'Distribution');
+            
+            // Journal
+            const journalData = [
+                ['Achievement Journal'], [],
+                ['Date Earned', 'C-WAGS #', 'Dog Name', 'Handler', 'Class', 'Judge', 'Achievement']
+            ];
+            achievementJournal.forEach(achievement => {
+                const dateStr = achievement.date.toLocaleDateString('en-US');
+                let achievementText = '';
+                if (achievement.achievementType === 'title') {
+                    achievementText = 'Title';
+                } else if (achievement.achievementType === 'ace') {
+                    achievementText = 'Ace';
+                } else {
+                    const aceNum = parseInt(achievement.achievementType.replace('ace', ''));
+                    achievementText = `Ace x${aceNum}`;
+                }
+                journalData.push([
+                    dateStr,
+                    achievement.registrationNumber,
+                    achievement.callName,
+                    achievement.handlerName || '-',
+                    achievement.level,
+                    achievement.judge,
+                    achievementText
+                ]);
+            });
+            const journalWs = XLSX.utils.aoa_to_sheet(journalData);
+            journalWs['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 20 }, { wch: 25 }, { wch: 18 }, { wch: 25 }, { wch: 12 }];
+            XLSX.utils.book_append_sheet(wb, journalWs, 'Achievement Journal');
+            
+            XLSX.writeFile(wb, `CWAGS_Stats_All_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        // Render all content
+        function renderAllContent() {
+            const content = document.getElementById('content');
+            content.innerHTML = '';
+            content.classList.add('show');
+            
+            // Create tabs
+            const tabs = [
+                { id: 'distribution', label: '📊 Distribution Table' },
+                { id: 'journal', label: '📖 Achievement Journal', isJournal: true }
+            ];
+            
+            const navTabs = document.getElementById('navTabs');
+            navTabs.classList.add('show');
+            navTabs.innerHTML = tabs.map((tab, index) => 
+                `<button class="nav-tab ${tab.isJournal ? 'journal' : ''} ${index === 0 ? 'active' : ''}" onclick="switchTab('${tab.id}')">${tab.label}</button>`
+            ).join('');
+            
+            // Create tab content
+            tabs.forEach((tab, index) => {
+                const tabContent = document.createElement('div');
+                tabContent.className = `tab-content ${index === 0 ? 'active' : ''}`;
+                tabContent.id = `tab-${tab.id}`;
+                
+                if (tab.id === 'distribution') {
+                    tabContent.innerHTML = renderDistributionTable();
+                } else if (tab.id === 'journal') {
+                    tabContent.innerHTML = renderAchievementJournal();
+                }
+                
+                content.appendChild(tabContent);
+            });
+        }
+
+        // Switch tabs
+        function switchTab(tabId) {
+            currentActiveTab = tabId;
+            
+            // Update tab buttons
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        }
+        
+        window.switchTab = switchTab;
+        window.processFiles = processFiles;
+        window.exportCurrentTab = exportCurrentTab;
+        window.exportAllTabs = exportAllTabs;
+        window.showDogList = showDogList;
+        window.closeModal = closeModal;
+        window.exportModalToCSV = exportModalToCSV;
+    </script>
+</body>
+</html>
